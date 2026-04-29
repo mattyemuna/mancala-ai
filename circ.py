@@ -6,6 +6,7 @@ import sarsa2
 import sarsa3
 import torch
 import pickle
+import random
 
 
 class Node:
@@ -94,7 +95,7 @@ class CircularLinkedList:
         print(indent + bottom_indices)
         print()
             
-    def makeMove(self, pit_index, player, silentFlag = True):  
+    def makeMove(self, pit_index, player, silentFlag = False):  
 
         current = self.getNode(pit_index)
         
@@ -144,7 +145,7 @@ class CircularLinkedList:
             oppositeNode.stones = 0
             lastNode.stones = 0
     
-    def checkGameOver(self, silentFlag = True):
+    def checkGameOver(self, silentFlag = False):
         #check if all the pits in p1Pits are empty
         over1 = 0
         for node in self.p1Pits:
@@ -234,7 +235,7 @@ def gameControl(board):
 def gameControl2(board):
     player = 1
     gameOver = False
-    depth = 10
+    depth = 12
 
     while not gameOver:
         board.printList() 
@@ -244,7 +245,7 @@ def gameControl2(board):
         else:
             state = board.circToList()
             pit = alphabeta.chooseBestMoveP2(state, depth)
-            print(f"Alpha Beta Pruning chooses pit {pit}, at depth {10}")
+            print(f"Alpha Beta Pruning chooses pit {pit}, at depth {depth}")
         
         if player == 1 and 0<=pit<=5: 
             lastNode = board.makeMove(pit, player)
@@ -262,6 +263,47 @@ def gameControl2(board):
         playerStore = board.getPlayerStore(player)
 
         if lastNode != playerStore:  #handle extra turn works
+            if player == 1:
+                player = 2
+            else: 
+                player = 1
+        
+        gameOver = board.checkGameOver()   
+        if gameOver:
+            winner = board.checkGameWinner()
+            print(f"-------------player{winner} wins-------------")
+
+def gameControl2_5(board):
+    player = 1
+    gameOver = False
+    depth = 12
+
+    while not gameOver:
+        board.printList() 
+
+        if player == 1:
+            state = board.circToList()
+            pit = alphabeta.chooseBestMoveP1(state, depth)
+            print(f"Alpha Beta Pruning chooses pit {pit}, at depth {depth}")
+        else:
+            pit = int(input(f"player {player} ------------------- choose pit index: "))
+        
+        if player == 1 and 0<=pit<=5: 
+            lastNode = board.makeMove(pit, player)
+        elif player == 2 and 7<=pit<=12:
+            lastNode = board.makeMove(pit, player)
+        else:
+            print("-------cant make this move------")
+            continue
+        
+        if lastNode is None:
+            continue  
+
+        board.handleCapture(lastNode, player)
+
+        playerStore = board.getPlayerStore(player)
+
+        if lastNode != playerStore:
             if player == 1:
                 player = 2
             else: 
@@ -492,11 +534,14 @@ def train4(agent, episodes):
             print(f"EPISODE {i}")
 
         state = tuple(board.circToList())
-        action = alphabeta.chooseBestMoveP1(list(state), 6)
+        action = alphabeta.chooseBestMoveP1(list(state), 3)
         if action is None:
             continue
         features = agent.getFeatures(alphabeta.applyMove(list(state), player, action)[0])
         while not gameOver:
+
+            rand = random.uniform(0,1)
+
             lastNode = board.makeMove(action, player)
             board.handleCapture(lastNode, player)
             playerStore = board.getPlayerStore(player)
@@ -525,11 +570,15 @@ def train4(agent, episodes):
                 reward = (board.store2.stones - board.store1.stones - capture_threat) / 48
 
             if not gameOver:
+
                 nextState = tuple(board.circToList())
                 nextLegalMoves = alphabeta.getLegalMoves(nextState, player)
-                
+
                 if player == 1:
-                    nextAction = alphabeta.chooseBestMoveP1(list(nextState), 6)
+                    if rand < 0.1:
+                        nextAction = random.choice(nextLegalMoves)
+                    else:
+                        nextAction = alphabeta.chooseBestMoveP1(list(nextState), 3)
                 else:
                     nextAction = agent.chooseBestAction(nextState, nextLegalMoves, player)
                 
@@ -735,7 +784,7 @@ def boardReset():
     return board
 
 # board = boardReset()
-# gameControl2(board)
+# gameControl2_5(board)
 
 # agent = sarsa.SARSAAgent()
 # train2(agent, episodes=250000, depth=3)
@@ -747,9 +796,8 @@ def boardReset():
 # agent = sarsa2.SARSAAgent2()
 # train3(agent, 10000000)
 
-agent = sarsa3.SARSAAgent3()
-agent.model.load_state_dict(torch.load("model.pth"))
-train4(agent, 5000)
+# agent = sarsa3.SARSAAgent3()
+# train4(agent, 1000000)
 
 board = boardReset()
 gameControl5(board)

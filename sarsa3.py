@@ -6,23 +6,60 @@ import alphabeta
 class MancalaNet(nn.Module):
     def __init__(self):
         super(MancalaNet, self).__init__()
-        self.fc1 = nn.Linear(14, 64)  # input layer -> hidden layer
-        self.fc2 = nn.Linear(64, 1)   # hidden layer -> output
+        self.fc1 = nn.Linear(18, 64)  # 14 pit counts + 4 extra features
+        self.fc2 = nn.Linear(64, 1)
     
     def forward(self, x):
-        x = torch.relu(self.fc1(x))   # activation function
+        x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
 
 class SARSAAgent3:
-    def __init__(self, alpha = 0.01, gamma = 0.9, epsilon = 0):
+    def __init__(self, alpha=0.01, gamma=0.9, epsilon=0):
         self.model = MancalaNet()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=alpha)
         self.gamma = gamma
         self.epsilon = epsilon
 
     def getFeatures(self, state):
-        return torch.tensor(list(state), dtype=torch.float32)
+        features = list(state)
+
+        # extra turn potential for P2
+        my_EMP = 0
+        for i in range(7, 13):
+            if state[i] == (13 - i):
+                my_EMP += 1
+        
+        # capture potential for P2
+        my_CP = 0
+        for i in range(7, 13):
+            landed = i + state[i]
+            if landed > 13:
+                landed = landed % 14
+            if landed in range(7, 13) and state[landed] == 0:
+                opp = 12 - landed
+                my_CP += state[opp]
+        
+        # extra turn potential for P1 (threat)
+        opp_EMP = 0
+        for i in range(0, 6):
+            if state[i] == (6 - i):
+                opp_EMP += 1
+        
+        # capture potential for P1 (threat)
+        opp_CP = 0
+        for i in range(0, 6):
+            landed = i + state[i]
+            if landed in range(0, 6) and state[landed] == 0:
+                opp = 12 - landed
+                opp_CP += state[opp]
+
+        features.append(my_EMP)
+        features.append(my_CP)
+        features.append(opp_EMP)
+        features.append(opp_CP)
+
+        return torch.tensor(features, dtype=torch.float32)
     
     def getQ(self, features):
         return self.model(features)
