@@ -1,6 +1,11 @@
+TO RUN:
+python circ.py
+
+
+
 Just a quick reminder: I did Mancala, the original version, played with 48 stones, and a starting board of 4 stones per pit (excluding the two stores).
 
-I started the assignment by designing the PvP version of the game. After much thought, I decided that I would make my board a circular linked list ( a linked list when the tail connects to the head). I did this because I thought it would be so much easier to handle sowing (making moves from pit 14 to pit 1+). I implemented the game logic including but not excluding: making moves, handling extra turns, handling captures, game over checks. Then I had a functioning  PvP game.
+I started this project by designing the PvP version of the game. After much thought, I decided that I would make my board a circular linked list ( a linked list when the tail connects to the head). I did this because I thought it would be so much easier to handle sowing (making moves from pit 14 to pit 1+). I implemented the game logic including but not excluding: making moves, handling extra turns, handling captures, game over checks. Then I had a functioning  PvP game.
 
 I then started to implement alpha-beta pruning. I had to reimplement the logic of the game and set up for alpha-beta pruning by adding some functions like getting a player’s legal moves and a heuristic function. For the heuristic, after much trial and tribulation, I ended up doing a weighted sum of  5 concrete evaluations:
 Difference in win potential (state[myStore] / total_stones) (number of pits in a players store/ the number of total stones left in all the pits) 
