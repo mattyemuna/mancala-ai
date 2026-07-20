@@ -13,6 +13,7 @@ class Node:
     def __init__(self, stones):
          self.stones = stones
          self.next = None
+         self.index = None  # fixed position 0-13, assigned on addNode; used only for UI serialization
 
 class CircularLinkedList:
     def __init__(self):
@@ -23,8 +24,13 @@ class CircularLinkedList:
         self.p1Pits = []
         self.p2Pits = []
         self.winner = None
-    
+        self._nodeCount = 0
+        self.lastMoveTrace = []  # pit indices sown into by the most recent makeMove, in order (UI animation only)
+        self.lastCapture = None  # dict describing the most recent capture, or None (UI animation only)
+
     def addNode(self, newNode):
+        newNode.index = self._nodeCount
+        self._nodeCount += 1
         current = self.head
         if current == None:
             self.head = newNode
@@ -98,40 +104,43 @@ class CircularLinkedList:
     def makeMove(self, pit_index, player, silentFlag = False):  
 
         current = self.getNode(pit_index)
-        
+
         opponentStore = self.getOpponentStore(player)
         #check if pit is empty
         if current.stones == 0:
             print("empty pit ------------------- cant make move")  #works
             return
-        
+
         else:
             numStones = current.stones
             current.stones = 0
+            self.lastMoveTrace = []
             while numStones > 0:
                current = current.next
                if current == opponentStore:
                    current = current.next
                current.stones += 1
                numStones -= 1
-            
+               self.lastMoveTrace.append(current.index)
+
             if not silentFlag:
                 print("made move")
             return current #will need very soon for extra turn detection
         
-    def handleCapture(self, lastNode, player):  
-       
+    def handleCapture(self, lastNode, player):
+
         playerStore = self.getPlayerStore(player)
+        self.lastCapture = None
 
         if lastNode.stones != 1 or lastNode == playerStore:
             return
-        
+
         if player == 1 and lastNode not in self.p1Pits:
             return
-        
+
         if player == 2 and lastNode not in self.p2Pits:
             return
-        
+
         index = self.getNodeIndex(lastNode)
         oppositeIndex = 5 - index
 
@@ -139,8 +148,15 @@ class CircularLinkedList:
             oppositeNode = self.p2Pits[oppositeIndex]
         else:
             oppositeNode = self.p1Pits[oppositeIndex]
-        
+
         if oppositeNode.stones > 0:
+            self.lastCapture = {
+                "pitIndex": lastNode.index,
+                "oppositeIndex": oppositeNode.index,
+                "storeIndex": playerStore.index,
+                "pitStones": lastNode.stones,
+                "oppositeStones": oppositeNode.stones,
+            }
             playerStore.stones += oppositeNode.stones + lastNode.stones
             oppositeNode.stones = 0
             lastNode.stones = 0
@@ -799,6 +815,7 @@ def boardReset():
 # agent = sarsa3.SARSAAgent3()
 # train4(agent, 1000000)
 
-board = boardReset()
-gameControl5(board)
+if __name__ == "__main__":
+    board = boardReset()
+    gameControl5(board)
 

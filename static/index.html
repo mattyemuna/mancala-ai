@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mancala</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ===== Mode select screen ===== -->
+<section id="mode-screen" class="screen">
+  <div class="mode-card">
+    <h1>Mancala</h1>
+    <p class="subtitle">Choose how you'd like to play</p>
+
+    <button class="mode-btn" data-mode="pvp">
+      <span class="mode-btn-title">Player vs Player</span>
+      <span class="mode-btn-desc">Pass and play locally, two humans</span>
+    </button>
+
+    <button class="mode-btn" data-mode="ab">
+      <span class="mode-btn-title">Player vs AI &mdash; Alpha-Beta</span>
+      <span class="mode-btn-desc">Minimax search, depth 10</span>
+    </button>
+
+    <button class="mode-btn" data-mode="sarsa">
+      <span class="mode-btn-title">Player vs AI &mdash; SARSA</span>
+      <span class="mode-btn-desc">Reinforcement-learned neural net</span>
+    </button>
+  </div>
+</section>
+
+<!-- ===== Game screen ===== -->
+<section id="game-screen" class="screen hidden">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="new-game-btn" class="pill-btn">New Game</button>
+    </div>
+    <div id="turn-indicator" class="turn-indicator">Player 1's turn</div>
+    <div class="topbar-right">
+      <span id="mode-label" class="mode-label"></span>
+    </div>
+  </header>
+
+  <div id="board" class="board">
+    <div class="store" id="store-p2">
+      <div class="store-label">P2</div>
+      <div class="store-well" id="store-p2-well"></div>
+      <div class="store-count" id="store-p2-count">0</div>
+    </div>
+
+    <div class="pit-grid">
+      <div class="pit-row pit-row-top">
+        <!-- pits 12,11,10,9,8,7 -->
+      </div>
+      <div class="pit-row pit-row-bottom">
+        <!-- pits 0,1,2,3,4,5 -->
+      </div>
+    </div>
+
+    <div class="store" id="store-p1">
+      <div class="store-label">P1</div>
+      <div class="store-well" id="store-p1-well"></div>
+      <div class="store-count" id="store-p1-count">0</div>
+    </div>
+
+    <div id="fly-layer"></div>
+  </div>
+</section>
+
+<!-- ===== Game over overlay ===== -->
+<div id="gameover-overlay" class="overlay hidden">
+  <div class="overlay-card">
+    <h2 id="gameover-title">Game Over</h2>
+    <p id="gameover-sub"></p>
+    <div class="overlay-actions">
+      <button id="rematch-btn" class="pill-btn primary">Play Again (same mode)</button>
+      <button id="change-mode-btn" class="pill-btn">Change Mode</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
